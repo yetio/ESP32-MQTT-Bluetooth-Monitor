@@ -543,17 +543,6 @@ void BluetoothScanner::loop()
     }
 
     unsigned long current_millis = millis();
-
-    // If scan is still active but timed out...
-    if(scanMode != ScanType::None) {
-        if(current_millis - getLastScanTime(scanMode) > scan_duration_timeout) {
-            led.set(OFF);
-            mSerial.println("Scan timed out. Reseting scanning state!\n");
-            scanIndex = -1;
-            scanMode = ScanType::None;
-        }
-    }
-
     if(scanMode != ScanType::None && !scanInProgress && btDevices.size() != 0) {
         if(current_millis > last_scan_iter_millis + scan_iter_interval || scanIndex != 0) { // only block first device of the list!
             last_scan_iter_millis = current_millis;
@@ -723,11 +712,6 @@ void BluetoothScanner::setMinTimeBetweenScans(uint32_t val) {
 // -----------------------------------------------
 void BluetoothScanner::setPeriodicScanInterval(uint32_t val) {
     periodic_scan_interval = val;
-}
-
-// -----------------------------------------------
-void BluetoothScanner::setScanDurationTimeout(uint32_t val) {
-    scan_duration_timeout = val*1000;
 }
 
 // -----------------------------------------------
@@ -952,7 +936,7 @@ void BluetoothScanner::HandleReadRemoteNameResult(esp_bt_gap_cb_param_t::read_rm
     else {
         // Odd formula, but based on original in BluetoothPresence scripts...
         if(scanMode != ScanType::Arrival) {
-            uint8_t confidence =  min(100.0f, (90.0f * dev.scansLeft) / float(num_departure_scans));
+            uint8_t confidence =  min(100.0f, float(dev.scansLeft) / (num_departure_scans*90.0f));
             dev.confidence = min(dev.confidence, confidence); // Dont increase confidence on departure scan.
         }
         else {

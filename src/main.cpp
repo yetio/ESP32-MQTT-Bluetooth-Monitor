@@ -73,29 +73,27 @@ WiFiManager wm(mSerial);
 LED led;
 
 // >>> All parameters in order shown in WiFiManager:
-Parameter time_header   ("<h3>Timezone</h3><br>Use e.g. Europe/Amsterdam. <a href='http://wikipedia.org/wiki/List_of_tz_database_time_zones#list'>List of timezones</a><br>(empty for auto-geolocation)<br>");
-Parameter time_zone     ("time_zone",     "",            "",         40);
-// MQTT 
-Parameter mqtt_header   ("<h3>MQTT parameters</h3>");
-Parameter mqtt_server   ("mqtt_server",   "mqtt server", "",         40);
-Parameter mqtt_port     ("mqtt_port",     "mqtt port",   "1883",      6);
-Parameter mqtt_username ("mqtt_username", "username",    "",         32);
-Parameter mqtt_password ("mqtt_password", "password",    "",         32);
-Parameter mqtt_client_id("mqtt_clid",     "Client ID",   "",         32);
+Parameter time_header  ("<h3>Timezone</h3><br>Use e.g. Europe/Amsterdam. <a href='http://wikipedia.org/wiki/List_of_tz_database_time_zones#list'>List of timezones</a><br>(empty for auto-geolocation)<br>");
+Parameter time_zone    ("time_zone",     "",            "",         40);
+// MQTT
+Parameter mqtt_header  ("<h3>MQTT parameters</h3>");
+Parameter mqtt_server  ("mqtt_server",   "mqtt server", "",         40);
+Parameter mqtt_port    ("mqtt_port",     "mqtt port",   "1883",      6);
+Parameter mqtt_username("mqtt_username", "username",    "",         32);
+Parameter mqtt_password("mqtt_password", "password",    "",         32);
 
 Parameter mqtt_topic   ("mqtt_topic",    "topic root",  "monitor",  32);
 Parameter mqtt_identity("mqtt_identity", "identity",    "",         32);
 
 // Bluetooth Monitor settings
-Parameter     bluetooth_monitor_header                     (PSTR("<h3>Bluetooth Monitor settings</h3>"));
-U16Parameter  bluetooth_monitor_arrival_scans              (PSTR("bm_arrival"),    PSTR("# Arrival scans"),               1  );
-U16Parameter  bluetooth_monitor_departure_scans            (PSTR("bm_depart"),     PSTR("# Departure scans"),             3  );
-U16Parameter  bluetooth_monitor_seconds_between_scan_iters (PSTR("bm_iter_time"),  PSTR("Seconds between scan tries"),    3  );
-U16Parameter  bluetooth_monitor_scan_timeout_seconds       (PSTR("bm_timeout"),    PSTR("Scan duration timeout (s)"),     60 );
-U16Parameter  bluetooth_monitor_beacon_expiration          (PSTR("bm_beacon_exp"), PSTR("Beacon expiration time (s)"),    240);
-U16Parameter  bluetooth_monitor_min_time_between_scans     (PSTR("bm_min_time"),   PSTR("Min. time between scans (s)"),   10 );
-U16Parameter  bluetooth_monitor_periodic_scan_interval     (PSTR("bm_period"),     PSTR("Periodic scan interval (s)<br>(Leave empty or '0' to disable periodic scanning)"), 0);
-BoolParameter bluetooth_monitor_retain_flag                (PSTR("bm_retain"),     PSTR("MQTT retain flag (true/false)"), false);
+Parameter bluetooth_monitor_header                     (PSTR("<h3>Bluetooth Monitor settings</h3>"));
+Parameter bluetooth_monitor_arrival_scans              (PSTR("bm_arrival"),    PSTR("# Arrival scans"),               "1",     6);
+Parameter bluetooth_monitor_departure_scans            (PSTR("bm_depart"),     PSTR("# Departure scans"),             "3",     6);
+Parameter bluetooth_monitor_seconds_between_scan_iters (PSTR("bm_iter_time"),  PSTR("Seconds between scan tries"),    "3",     6);
+Parameter bluetooth_monitor_beacon_expiration          (PSTR("bm_beacon_exp"), PSTR("Beacon expiration time (s)"),    "240",   6);
+Parameter bluetooth_monitor_min_time_between_scans     (PSTR("bm_min_time"),   PSTR("Min. time between scans (s)"),   "10",    6);
+Parameter bluetooth_monitor_periodic_scan_interval     (PSTR("bm_period"),     PSTR("Periodic scan interval (s)<br>(Leave empty to disable periodic scanning)"),    "",      6);
+Parameter bluetooth_monitor_retain_flag                (PSTR("bm_retain"),     PSTR("MQTT retain flag (true/false)"), "false", 6);
 
 // Known Static Bluetooth MAC 
 // Nested struct helper to generate objects and reduce boilerplate...
@@ -232,19 +230,6 @@ void heap_caps_alloc_failed_hook(size_t requested_size, uint32_t caps, const cha
 }
 
 // -----------------------------------------------
-bool ensureAllCaps(std::string& str) {
-    bool strUpdated = false;
-    for (auto & c: str) {
-        auto cu = toupper(c);
-        if(c != cu) {
-            strUpdated = true;
-        }
-        c = cu;
-    }
-    return strUpdated;
-}
-
-// -----------------------------------------------
 #define PREFERENCES_TAG_VALUE (54)
 void setupPreferences() {
     preferences.begin("E32BT", false);
@@ -264,12 +249,6 @@ void setupPreferences() {
         Serial.println("Done!!");
     }
 
-    // Set default MQTT Client ID if not set:
-    if(strlen(mqtt_client_id.getValue()) < 1) {
-        String client_id = String("ESP32_bt") + String(WIFI_getChipId(),HEX);
-        mqtt_client_id.setValue(client_id.c_str());
-    }
-
     // Remove all preferences under the opened namespace
     //preferences.clear();
 
@@ -282,8 +261,7 @@ void setupMQTT() {
     mqtt.setup( mqtt_server.getValue(),
                 mqtt_port.getValue(),
                 mqtt_username.getValue(),
-                mqtt_password.getValue(),
-                mqtt_client_id.getValue() );
+                mqtt_password.getValue() );
 }
 
 // -----------------------------------------------
@@ -390,41 +368,33 @@ void setupBtScanner() {
     btScanner.setScannerIdentity(mqtt_identity.getValue());
     btScanner.setRetainFlag(param2bool(bluetooth_monitor_retain_flag));        
 
-    btScanner.setNumArrivalScans        (bluetooth_monitor_arrival_scans.getValue());
-    btScanner.setNumDepartureScans      (bluetooth_monitor_departure_scans.getValue());
-    btScanner.setSecondsBetweenScanIters(bluetooth_monitor_seconds_between_scan_iters.getValue());
-    btScanner.setBeaconExpiration       (bluetooth_monitor_beacon_expiration.getValue());
-    btScanner.setMinTimeBetweenScans    (bluetooth_monitor_min_time_between_scans.getValue());
-    btScanner.setPeriodicScanInterval   (bluetooth_monitor_periodic_scan_interval.getValue());
-    btScanner.setScanDurationTimeout    (bluetooth_monitor_scan_timeout_seconds.getValue());
+    btScanner.setNumArrivalScans        (atoi   (bluetooth_monitor_arrival_scans.getValue()));
+    btScanner.setNumDepartureScans      (atoi   (bluetooth_monitor_departure_scans.getValue()));
+    btScanner.setSecondsBetweenScanIters(strtoul(bluetooth_monitor_seconds_between_scan_iters.getValue(), NULL, 0));
+    btScanner.setBeaconExpiration       (strtoul(bluetooth_monitor_beacon_expiration.getValue(), NULL, 0));
+    btScanner.setMinTimeBetweenScans    (strtoul(bluetooth_monitor_min_time_between_scans.getValue(), NULL, 0));
+    btScanner.setPeriodicScanInterval   (strtoul(bluetooth_monitor_periodic_scan_interval.getValue(), NULL, 0));
     // ToDo: Reload the rest of Bluetooth parameters
 
     // (Re)Load known BT devices:
     btScanner.clearKnownDevices();
     for(int i = 0; i < bluetooth_monitor_parameter_sets.size; i++) {
         esp_bd_addr_t mac;
-        std::string mac_str = bluetooth_monitor_parameter_sets.data[i].getMacAddress();
-
-        // Ensure Mac addresses are all CAPS:
-        bool updateMac = ensureAllCaps(mac_str);
-        if(updateMac) {
-            bluetooth_monitor_parameter_sets.data[i].setMacAddress(mac_str.c_str());
-        }
-
-        if(mac_str.find_first_not_of(" \t\n\v\f\r") != std::string::npos) {
-            mSerial.printf("Validating MAC: '%s' \n", mac_str.c_str());
+        const char* mac_str = bluetooth_monitor_parameter_sets.data[i].getMacAddress();
+        if(std::string(mac_str).find_first_not_of(" \t\n\v\f\r") != std::string::npos) {
+            mSerial.printf("Validating MAC: '%s' \n", mac_str);
 
             BLEUUID ble_uuid = BLEUUID::fromString(mac_str);
 
             // If valid mac address, add it!
-            if(str2bda(mac_str.c_str(), mac)) {
+            if(str2bda(mac_str, mac)) {
                 const char* alias = bluetooth_monitor_parameter_sets.data[i].getAlias();
-                mSerial.printf("  Adding device: %s, with MAC: %s \n", alias, mac_str.c_str());
+                mSerial.printf("  Adding device: %s, with MAC: %s \n", alias, mac_str);
                 btScanner.addKnownDevice(mac, alias);
             }
             else if (!ble_uuid.equals(BLEUUID())) {
                 const char* alias = bluetooth_monitor_parameter_sets.data[i].getAlias();
-                mSerial.printf("  Adding device: %s, with UUID: '%s' \n", alias, mac_str.c_str());
+                mSerial.printf("  Adding device: %s, with UUID: '%s' \n", alias, mac_str);
                 btScanner.addKnownIBeacon(ble_uuid, alias);
             }
         }

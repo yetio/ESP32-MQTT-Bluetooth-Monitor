@@ -21,6 +21,7 @@ public:
 
     MQTT(Stream& serialStream) : mSerial(serialStream), mqtt_client(espClient)
     {
+        _clientId = String("ESP32_bt") + String(WIFI_getChipId(),HEX);
         // Nothing..
     }
 
@@ -28,8 +29,7 @@ public:
       const char* mqtt_server,
       const char* mqtt_port,
       const char* mqtt_username,
-      const char* mqtt_password,
-      const char* mqtt_client_id);
+      const char* mqtt_password);
     void loop();
 
     void setStateTopic(std::string state_topic);
@@ -59,12 +59,12 @@ private:
     const char* _mqtt_port     = nullptr;
     const char* _mqtt_username = nullptr;
     const char* _mqtt_password = nullptr;
-    const char* _mqtt_clientId = nullptr;
 
     uint32_t _mqtt_reconnect_retries = 0;
 
     std::string _mqtt_state_topic_str = "";
     std::string _mqtt_ip_topic_str    = "";
+    String _clientId;
 
     // MQTT Last reconnection counter
     unsigned long last_reconnect_attempt = 0;
