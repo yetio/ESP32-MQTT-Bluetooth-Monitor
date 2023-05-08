@@ -6,6 +6,7 @@
 
 .pio
 
+
 # Node artifact files
 node_modules/
 dist/
@@ -54,3 +55,10 @@ Thumbs.db
 /.vscode/launch.json
 /.vscode/c_cpp_properties.json
 .vscode/settings.json
+
+# Build/Make file
+build/
+*.lock
+sdkconfig
+sdkconfig.ESP_Wroom_32
+sdkconfig.wemos_d1_mini32

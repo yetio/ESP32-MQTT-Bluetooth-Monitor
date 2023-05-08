@@ -80,7 +80,7 @@ Parameter mqtt_header  ("<h3>MQTT parameters</h3>");
 Parameter mqtt_server  ("mqtt_server",   "mqtt server", "",         40);
 Parameter mqtt_port    ("mqtt_port",     "mqtt port",   "1883",      6);
 Parameter mqtt_username("mqtt_username", "username",    "",         32);
-Parameter mqtt_password("mqtt_password", "password",    "",         32);
+Parameter mqtt_password("mqtt_password", "password",    "",         128); //compatible for the longer password
 
 Parameter mqtt_topic   ("mqtt_topic",    "topic root",  "monitor",  32);
 Parameter mqtt_identity("mqtt_identity", "identity",    "",         32);
@@ -230,7 +230,7 @@ void heap_caps_alloc_failed_hook(size_t requested_size, uint32_t caps, const cha
 }
 
 // -----------------------------------------------
-#define PREFERENCES_TAG_VALUE (54)
+#define PREFERENCES_TAG_VALUE (56)
 void setupPreferences() {
     preferences.begin("E32BT", false);
     

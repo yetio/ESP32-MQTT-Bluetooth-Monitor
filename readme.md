@@ -105,3 +105,5 @@ Find some examples for sensors and automations in HomeAssistant [here](doc/HomeA
 - [ ] Make an ESPHome component for it
 	- Currently blocked by incompatible IDF v4.2 support used by ESPHome Core
  
+### Chang Log
+- May 8, 2023 by Yetio: Debug from 3.0 of RoboMagus/ESP32-MQTT-Bluetooth-Monitor

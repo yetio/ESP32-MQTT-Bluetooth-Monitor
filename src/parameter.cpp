@@ -51,7 +51,7 @@ Parameter::Parameter(const char *id, const char *label, const char* defaultValue
 void Parameter::initialize() {
     // CustomHTLM does not store to NVS. No need to read it...
     if(getID() != nullptr) {
-        preferences.getString(WiFiManagerParameter::getID(), WiFiManagerParameter::_value, WiFiManagerParameter::_length);
+        preferences.getString(WiFiManagerParameter::getID(),(char *) WiFiManagerParameter::getValue(), WiFiManagerParameter::getValueLength());
     }
     _initialized = true;
 }
@@ -60,7 +60,7 @@ void Parameter::initialize() {
 void Parameter::storeValue() {
     // CustomHTLM does not store to NVS. No need to store it...
     if(getID() != nullptr) {
-        if(preferences.getString(WiFiManagerParameter::getID(),"") != WiFiManagerParameter::_value) {
+        if(preferences.getString(WiFiManagerParameter::getID(),"") != WiFiManagerParameter::getValue()) {
             preferences.putString(WiFiManagerParameter::getID(), getValue());
         }
     }
@@ -71,5 +71,5 @@ void Parameter::setValue(const char *value) {
     if(_initialized) {
         preferences.putString(WiFiManagerParameter::getID(), value);
     }
-    WiFiManagerParameter::setValue(value);
+    WiFiManagerParameter::setValue(value,strlen(value));
 }

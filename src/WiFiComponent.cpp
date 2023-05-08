@@ -30,6 +30,8 @@ const char* eurNtpServer   = "europe.pool.ntp.org";
 const char* nlNtpServer    = "nl.pool.ntp.org";
 const long  gmtOffset_sec = 3600;
 const int   daylightOffset_sec = 3600;
+#define TC_MENUSIZE 10
+static const char* wifiMenu[TC_MENUSIZE] = {"wifi", "param", "info", "custom", "sep", "erase", "update", "restart",  "sep" };
 
 // -----------------------------------------------
 void WiFiComponent::wifiInfo(){
@@ -106,6 +108,7 @@ void WiFiComponent::setupConfigPortal() {
     // Clear the original menu list
     wm.setMenu(nullptr, 0);
     // Use custom menu list only:
+    /*  Updated to new function name of WifiManager
     wm.setCustomMenuItems({{"/wifi"   , "Configure WiFi", false},
                            {"/param"  , "Settings"      , false},
                            {"/info"   , "Info"          , false},
@@ -115,8 +118,12 @@ void WiFiComponent::setupConfigPortal() {
                            {"/update" , "Update"        , false},
                            {"/restart", "Restart"       , false},
                            {"--"      , ""              , false}}); // Ending Separator
-
-
+*/
+    //add custom menu item
+    const char* menuhtml = "<form action='/bt' method='get'><button>BT Monitor</button></form><br/>\n";
+    wm.setCustomMenuHTML(menuhtml);
+    //add all other menu items
+    wm.setMenu(wifiMenu, TC_MENUSIZE);
     //sets timeout until configuration portal gets turned off
     //useful to make it all retry or go to sleep in seconds
     wm.setConfigPortalTimeout(600); // 10 minutes
@@ -127,7 +134,9 @@ void WiFiComponent::setupConfigPortal() {
     // set wifi connect retries
     wm.setConnectRetries(3);
 
+
     // connect after portal save toggle
+    mSerial.println("YTDebug: WiFiComponent::setupConfigPortal()-setSaveConnect");  
     wm.setSaveConnect(true); // do not connect, only save
 
     wm.setWiFiAutoReconnect(true);
@@ -137,17 +146,18 @@ void WiFiComponent::setupConfigPortal() {
     apName = "ESP32_bt_" + apName;
 
     // Setup httpd authentication for config portal once it's connected to users home WiFi network:
-    wm.setHttpdAuthCredentials(HTTPD_USER, HTTPD_PASSWD);
+    //wm.setHttpdAuthCredentials(HTTPD_USER, HTTPD_PASSWD);
 
     //fetches ssid and pass and tries to connect
     //if it does not connect it starts an access point with the specified name
     //and goes into a blocking loop awaiting configuration
     // --> last parameter ensures a retry to the blocking loop to connect to known WiFi AP
-    if(!wm.autoConnect(apName.c_str(), AP_PASSWD, true)) {
+    //if(!wm.autoConnect(apName.c_str(), AP_PASSWD, true)) {
+    if(!wm.autoConnect(apName.c_str(), AP_PASSWD)) {
         mSerial.println("failed to connect and hit timeout");
     }
     else {
-        wm.setHttpdAuthEnable(true); 
+        //wm.setHttpdAuthEnable(true); 
 
         // Disable AP
         WiFi.softAPdisconnect(true);
